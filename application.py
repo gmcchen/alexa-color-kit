@@ -13,6 +13,9 @@ from flask import json
 from flask import jsonify
 from flask import request
 
+import logging
+from logging.handlers import RotatingFileHandler
+
 
 # --------------- Helpers that build all of the responses ----------------------
 
@@ -220,6 +223,17 @@ application = Flask(__name__)
 
 @application.route('/alexacolorkit', methods = ['POST', 'GET'])
 def mymain():
+    # adding logging to Flask
+
+    mylog = application.logger
+    mylog.warning('A warning message occurred (%d apples)', 42)
+    mylog.error('An error message occurred')
+    mylog.info('Info message')
+
+    #application.logger.warning('A warning message occurred (%d apples)', 42)
+    #application.logger.error('An error message occurred')
+    #application.logger.info('Info message')
+
     if request.method == 'POST':
         print("ECHO: POST\n")
         print("JSON Message received: " + json.dumps(request.json))
@@ -236,6 +250,22 @@ def mymain():
 
 # run the app.
 if __name__ == "__main__":
+
+    #formatter = logging.Formatter(
+    #    "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
+    #handler = RotatingFileHandler(LOG_FILENAME, maxBytes=10000000, backupCount=5)
+    formatter = logging.Formatter(
+        "[%(asctime)s] {%(pathname)s:%(lineno)d -%(funcName)8s()} %(levelname)s - %(message)s")
+    handler = RotatingFileHandler('foo.log', maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(formatter)
+    application.logger.addHandler(handler)
+
+    # log messages emitted by Werkzeug
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.DEBUG)
+    log.addHandler(handler)
+
     # Setting debug to True enables debug output. This line should be
     # removed before deploying a production app.
     application.debug = True
